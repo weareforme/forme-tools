@@ -34,9 +34,11 @@
       --good: #4ade80;
       --warn: #fbbf24;
       --bad: #f87171;
+      --info: #60a5fa;
       --good-bg: rgba(74, 222, 128, 0.08);
       --warn-bg: rgba(251, 191, 36, 0.08);
       --bad-bg: rgba(248, 113, 113, 0.08);
+      --info-bg: rgba(96, 165, 250, 0.08);
       --font-mono: 'DM Mono', monospace;
       --font-sans: 'DM Sans', sans-serif;
       --radius: 8px;
@@ -55,14 +57,12 @@
       line-height: 1.5;
     }
 
-    /* Layout */
     .app {
-      max-width: 860px;
+      max-width: 900px;
       margin: 0 auto;
       padding: 48px 24px 80px;
     }
 
-    /* Header */
     .header {
       display: flex;
       align-items: flex-start;
@@ -108,7 +108,6 @@
       color: var(--good);
     }
 
-    /* Hero */
     .hero {
       margin-bottom: 40px;
     }
@@ -134,7 +133,6 @@
       max-width: 480px;
     }
 
-    /* Input panel */
     .input-panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -147,10 +145,12 @@
       display: flex;
       gap: 12px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
     .url-input {
       flex: 1;
+      min-width: 200px;
       font-family: var(--font-mono);
       font-size: 13px;
       background: var(--bg);
@@ -240,10 +240,6 @@
       color: var(--good);
     }
 
-    .sheet-status.error {
-      color: var(--bad);
-    }
-
     .dot {
       width: 6px;
       height: 6px;
@@ -252,7 +248,6 @@
       flex-shrink: 0;
     }
 
-    /* Loading */
     .loading {
       display: none;
       text-align: center;
@@ -285,7 +280,6 @@
       color: var(--text-muted);
     }
 
-    /* Results */
     .results {
       display: none;
     }
@@ -300,6 +294,7 @@
       justify-content: space-between;
       margin-bottom: 24px;
       gap: 16px;
+      flex-wrap: wrap;
     }
 
     .results-meta {
@@ -328,7 +323,6 @@
       border-color: rgba(248, 113, 113, 0.2);
     }
 
-    /* Score grid */
     .scores {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -339,10 +333,6 @@
     @media (max-width: 600px) {
       .scores {
         grid-template-columns: repeat(2, 1fr);
-      }
-
-      .input-row {
-        flex-wrap: wrap;
       }
     }
 
@@ -405,7 +395,6 @@
       letter-spacing: 0.06em;
     }
 
-    /* Metrics */
     .section-title {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -460,59 +449,320 @@
       color: var(--text-muted);
     }
 
-    /* Opportunities */
-    .opportunities {
+    .audit-group {
       margin-bottom: 28px;
     }
 
-    .opp-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 14px 16px;
+    .audit-item {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       margin-bottom: 8px;
+      overflow: hidden;
     }
 
-    .opp-saving {
+    .audit-item-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .audit-item-header:hover {
+      background: var(--surface-2);
+    }
+
+    .audit-score-pill {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
-      color: var(--warn);
-      background: var(--warn-bg);
       padding: 2px 8px;
       border-radius: 4px;
       white-space: nowrap;
       flex-shrink: 0;
-      margin-top: 1px;
+      margin-top: 2px;
     }
 
-    .opp-title {
+    .audit-score-pill.bad {
+      color: var(--bad);
+      background: var(--bad-bg);
+    }
+
+    .audit-score-pill.warn {
+      color: var(--warn);
+      background: var(--warn-bg);
+    }
+
+    .audit-score-pill.good {
+      color: var(--good);
+      background: var(--good-bg);
+    }
+
+    .audit-score-pill.info {
+      color: var(--info);
+      background: var(--info-bg);
+    }
+
+    .audit-item-body {
+      flex: 1;
+    }
+
+    .audit-item-title {
       font-size: 14px;
       color: var(--text);
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
 
-    .opp-desc {
+    .audit-item-desc {
       font-size: 12px;
       color: var(--text-muted);
       line-height: 1.5;
     }
 
-    /* History */
+    .audit-chevron {
+      margin-left: auto;
+      flex-shrink: 0;
+      color: var(--text-faint);
+      transition: transform 0.2s;
+      margin-top: 3px;
+    }
+
+    .audit-item.open .audit-chevron {
+      transform: rotate(180deg);
+    }
+
+    .audit-details {
+      display: none;
+      padding: 0 16px 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .audit-item.open .audit-details {
+      display: block;
+    }
+
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 12px;
+    }
+
+    .audit-table th {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .audit-table td {
+      padding: 7px 8px;
+      border-bottom: 1px solid var(--text-faint);
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    .audit-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .audit-table td.url-cell {
+      color: var(--text);
+      max-width: 400px;
+      word-break: break-all;
+    }
+
+    .audit-table td.saving-cell {
+      color: var(--warn);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .audit-table td.size-cell {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .action-plan-section {
+      margin-top: 32px;
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+    }
+
+    .generate-btn {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      padding: 10px 24px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .generate-btn:hover {
+      background: var(--accent-dim);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .action-plan-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .action-loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+
+    .action-loading.visible {
+      display: flex;
+    }
+
+    .action-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .action-plan {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .action-plan.visible {
+      display: block;
+    }
+
+    .action-task {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 10px;
+    }
+
+    .action-task-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .task-priority {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .task-priority.high {
+      background: var(--bad-bg);
+      color: var(--bad);
+    }
+
+    .task-priority.medium {
+      background: var(--warn-bg);
+      color: var(--warn);
+    }
+
+    .task-priority.low {
+      background: var(--good-bg);
+      color: var(--good);
+    }
+
+    .task-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .task-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .task-prompt {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--info);
+      line-height: 1.5;
+      position: relative;
+      padding-right: 70px;
+    }
+
+    .task-prompt-label {
+      font-size: 10px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent-border);
+    }
+
     .history-section {
       margin-top: 40px;
       border-top: 1px solid var(--border);
       padding-top: 32px;
-    }
-
-    .history-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
     }
 
     .history-table {
@@ -561,7 +811,6 @@
       color: var(--bad);
     }
 
-    /* Error */
     .error-msg {
       display: none;
       background: var(--bad-bg);
@@ -577,7 +826,6 @@
       display: block;
     }
 
-    /* Sheet link */
     .sheet-link {
       display: inline-flex;
       align-items: center;
@@ -592,14 +840,15 @@
       color: var(--accent);
     }
 
-    .sheet-link svg {
-      flex-shrink: 0;
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
     }
   </style>
 </head>
 
 <body>
-
   <div class="app">
 
     <header class="header">
@@ -609,7 +858,7 @@
 
     <div class="hero">
       <h1>Page speed<br><em>at a glance.</em></h1>
-      <p>Run PageSpeed Insights checks and log results to Google Sheets for ongoing performance tracking.</p>
+      <p>Run PageSpeed Insights checks, get actionable fixes, and log results to Google Sheets for ongoing tracking.</p>
     </div>
 
     <div class="input-panel">
@@ -631,6 +880,7 @@
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
+
     <div class="loading" id="loading">
       <div class="spinner"></div>
       <p>Running PageSpeed analysis...</p>
@@ -647,12 +897,19 @@
       <div class="section-title">Core Web Vitals</div>
       <div class="metrics" id="metricsGrid"></div>
 
-      <div class="opportunities" id="opportunitiesSection">
-        <div class="section-title">Top Opportunities</div>
+      <div class="audit-group">
+        <div class="section-title">Opportunities</div>
         <div id="opportunitiesList"></div>
       </div>
 
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 8px;">
+      <div class="audit-group">
+        <div class="section-title">Diagnostics</div>
+        <div id="diagnosticsList"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;">
         <a href="https://docs.google.com/spreadsheets/d/1eAL61WfIlZKNY6EVfkgw36DwiNmYj4lqQd7efmHbRQA/edit"
           target="_blank" class="sheet-link">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -662,12 +919,32 @@
           View in Google Sheets
         </a>
       </div>
+
+      <div class="action-plan-section">
+        <div class="action-plan-header">
+          <div>
+            <div class="section-title" style="margin-bottom:4px">Action Plan</div>
+            <p style="font-size:13px;color:var(--text-muted)">Generate prioritised, actionable fixes using Claude.</p>
+          </div>
+          <button class="generate-btn" id="generateBtn" onclick="generateActionPlan()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            Generate action plan
+          </button>
+        </div>
+        <div class="action-loading" id="actionLoading">
+          <div class="action-spinner"></div>
+          <span>Analysing results and generating fixes...</span>
+        </div>
+        <div class="action-plan" id="actionPlan"></div>
+      </div>
     </div>
 
     <div class="history-section" id="historySection" style="display:none">
-      <div class="history-header">
-        <div class="section-title" style="margin-bottom:0">Recent runs</div>
-      </div>
+      <div class="section-title" style="margin-bottom:16px">Recent runs</div>
       <table class="history-table">
         <thead>
           <tr>
@@ -677,7 +954,7 @@
             <th>Perf</th>
             <th>LCP</th>
             <th>CLS</th>
-            <th>FID/INP</th>
+            <th>TBT</th>
           </tr>
         </thead>
         <tbody id="historyBody"></tbody>
@@ -685,22 +962,19 @@
     </div>
 
   </div>
-
   <script>
-    // ---- CONFIG — replace these placeholders ----
     const PSI_API_KEY = 'AIzaSyAoNeV7wiBWUHc8I1mi-VyQiDW-6jS7uYA';
     const OAUTH_CLIENT_ID = '210799935917-busu8g202vr38p7s756dh2hpp9qk66al.apps.googleusercontent.com';
     const SHEET_ID = '1eAL61WfIlZKNY6EVfkgw36DwiNmYj4lqQd7efmHbRQA';
     const SHEET_NAME = 'Sheet1';
-    // -----------------------------------------------
 
     const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-
     let strategy = 'mobile';
     let accessToken = null;
     let tokenClient = null;
+    let lastPsiData = null;
+    let lastUrl = null;
 
-    // Init Google Identity
     window.addEventListener('load', () => {
       if (typeof google === 'undefined') return;
       tokenClient = google.accounts.oauth2.initTokenClient({
@@ -716,11 +990,7 @@
     });
 
     function handleAuth() {
-      if (accessToken) {
-        accessToken = null;
-        setSignedIn(false);
-        return;
-      }
+      if (accessToken) { accessToken = null; setSignedIn(false); return; }
       tokenClient.requestAccessToken({ prompt: 'consent' });
     }
 
@@ -753,35 +1023,41 @@
     }
 
     function metricClass(id, value) {
-      const thresholds = {
-        'first-contentful-paint': [1800, 3000],
-        'largest-contentful-paint': [2500, 4000],
-        'total-blocking-time': [200, 600],
-        'cumulative-layout-shift': [0.1, 0.25],
-        'speed-index': [3400, 5800],
-        'interactive': [3800, 7300]
-      };
-      const t = thresholds[id];
+      const t = { 'first-contentful-paint': [1800, 3000], 'largest-contentful-paint': [2500, 4000], 'total-blocking-time': [200, 600], 'cumulative-layout-shift': [0.1, 0.25], 'speed-index': [3400, 5800], 'interactive': [3800, 7300] }[id];
       if (!t) return '';
-      if (value <= t[0]) return 'good';
-      if (value <= t[1]) return 'warn';
-      return 'bad';
+      return value <= t[0] ? 'good' : value <= t[1] ? 'warn' : 'bad';
+    }
+
+    function formatBytes(b) {
+      if (!b) return '';
+      return b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : b > 1024 ? `${(b / 1024).toFixed(0)} KB` : `${b} B`;
+    }
+
+    function formatMs(ms) {
+      if (!ms) return '';
+      return ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${Math.round(ms)} ms`;
     }
 
     async function runCheck() {
       const url = document.getElementById('urlInput').value.trim();
       if (!url) return;
-
       document.getElementById('errorMsg').classList.remove('visible');
       document.getElementById('results').classList.remove('visible');
       document.getElementById('loading').classList.add('visible');
       document.getElementById('runBtn').disabled = true;
+      document.getElementById('actionPlan').classList.remove('visible');
+      document.getElementById('actionPlan').innerHTML = '';
 
       try {
         const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&key=${PSI_API_KEY}&category=performance&category=accessibility&category=best-practices&category=seo`;
         const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error(`API error ${res.status}`);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `API error ${res.status}`);
+        }
         const data = await res.json();
+        lastPsiData = data;
+        lastUrl = url;
         renderResults(data, url);
         if (accessToken) logToSheet(data, url);
       } catch (err) {
@@ -796,182 +1072,208 @@
       const cats = data.lighthouseResult.categories;
       const audits = data.lighthouseResult.audits;
 
-      // Scores
-      const scoreItems = [
+      document.getElementById('scoresGrid').innerHTML = [
         { key: 'performance', label: 'Performance' },
         { key: 'accessibility', label: 'Accessibility' },
         { key: 'best-practices', label: 'Best Practices' },
         { key: 'seo', label: 'SEO' }
-      ];
-
-      const scoresGrid = document.getElementById('scoresGrid');
-      scoresGrid.innerHTML = scoreItems.map(s => {
+      ].map(s => {
         const score = Math.round((cats[s.key]?.score || 0) * 100);
-        const cls = scoreClass(score);
-        return `<div class="score-card ${cls}">
-        <div class="score-value">${score}</div>
-        <div class="score-label">${s.label}</div>
-      </div>`;
+        return `<div class="score-card ${scoreClass(score)}"><div class="score-value">${score}</div><div class="score-label">${s.label}</div></div>`;
       }).join('');
 
-      // Core metrics
-      const metricItems = [
+      document.getElementById('metricsGrid').innerHTML = [
         { id: 'first-contentful-paint', label: 'FCP' },
         { id: 'largest-contentful-paint', label: 'LCP' },
         { id: 'total-blocking-time', label: 'TBT' },
         { id: 'cumulative-layout-shift', label: 'CLS' },
         { id: 'speed-index', label: 'Speed Index' },
         { id: 'interactive', label: 'TTI' }
-      ];
-
-      const metricsGrid = document.getElementById('metricsGrid');
-      metricsGrid.innerHTML = metricItems.map(m => {
-        const audit = audits[m.id];
-        if (!audit) return '';
-        const numericValue = audit.numericValue || 0;
-        const cls = metricClass(m.id, numericValue);
-        return `<div class="metric ${cls}">
-        <div class="metric-value">${audit.displayValue || '—'}</div>
-        <div class="metric-name">${m.label}</div>
-      </div>`;
+      ].map(m => {
+        const a = audits[m.id];
+        if (!a) return '';
+        return `<div class="metric ${metricClass(m.id, a.numericValue || 0)}"><div class="metric-value">${a.displayValue || '—'}</div><div class="metric-name">${m.label}</div></div>`;
       }).join('');
 
-      // Opportunities
-      const oppList = document.getElementById('opportunitiesList');
-      const opps = Object.values(audits)
-        .filter(a => a.details?.type === 'opportunity' && a.details?.overallSavingsMs > 100)
-        .sort((a, b) => (b.details.overallSavingsMs || 0) - (a.details.overallSavingsMs || 0))
-        .slice(0, 6);
+      const opps = Object.values(audits).filter(a => a.details?.type === 'opportunity' && a.score !== null && a.score < 1).sort((a, b) => (a.score || 0) - (b.score || 0));
+      document.getElementById('opportunitiesList').innerHTML = opps.length ? opps.map(renderAuditItem).join('') : '<p style="font-size:13px;color:var(--text-muted)">No opportunities found.</p>';
 
-      if (opps.length) {
-        oppList.innerHTML = opps.map(o => {
-          const saving = o.details.overallSavingsMs
-            ? `${(o.details.overallSavingsMs / 1000).toFixed(1)}s`
-            : '';
-          return `<div class="opp-item">
-          ${saving ? `<div class="opp-saving">${saving}</div>` : ''}
-          <div>
-            <div class="opp-title">${o.title}</div>
-            <div class="opp-desc">${o.description?.replace(/\[.*?\]\(.*?\)/g, '').substring(0, 140) || ''}</div>
-          </div>
-        </div>`;
-        }).join('');
-      } else {
-        oppList.innerHTML = '<p style="font-size:13px;color:var(--text-muted)">No major opportunities found.</p>';
-      }
+      const oppIds = new Set(opps.map(o => o.id));
+      const diags = Object.values(audits).filter(a => a.details?.type === 'table' && a.score !== null && a.score < 1 && !oppIds.has(a.id)).sort((a, b) => (a.score || 0) - (b.score || 0)).slice(0, 12);
+      document.getElementById('diagnosticsList').innerHTML = diags.length ? diags.map(renderAuditItem).join('') : '<p style="font-size:13px;color:var(--text-muted)">No diagnostics found.</p>';
 
-      // Meta
       const now = new Date();
       const ts = now.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       document.getElementById('resultsMeta').innerHTML = `<strong>${new URL(url).hostname}</strong> &middot; ${strategy} &middot; ${ts}`;
-
       document.getElementById('results').classList.add('visible');
       document.getElementById('logNotice').style.display = 'none';
+    }
+
+    function renderAuditItem(audit) {
+      const score = audit.score === null ? null : Math.round(audit.score * 100);
+      let pillClass = 'info', pillText = 'Info';
+      if (score !== null) {
+        if (score >= 90) { pillClass = 'good'; pillText = 'Pass'; }
+        else if (score >= 50) { pillClass = 'warn'; pillText = 'Improve'; }
+        else { pillClass = 'bad'; pillText = 'Fail'; }
+      }
+      if (audit.details?.type === 'opportunity' && audit.details?.overallSavingsMs) pillText = formatMs(audit.details.overallSavingsMs);
+      const tableHtml = renderAuditTable(audit);
+      const safeId = audit.id.replace(/[^a-z0-9]/gi, '_');
+      return `<div class="audit-item" id="audit-${safeId}">
+      <div class="audit-item-header" onclick="toggleAudit('${safeId}')">
+        <div class="audit-score-pill ${pillClass}">${pillText}</div>
+        <div class="audit-item-body">
+          <div class="audit-item-title">${audit.title}</div>
+          <div class="audit-item-desc">${(audit.description || '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').substring(0, 160)}</div>
+        </div>
+        <svg class="audit-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      ${tableHtml ? `<div class="audit-details">${tableHtml}</div>` : ''}
+    </div>`;
+    }
+
+    function renderAuditTable(audit) {
+      const d = audit.details;
+      if (!d?.items?.length || !d.headings?.length) return '';
+      const items = d.items.slice(0, 20);
+      const thead = `<tr>${d.headings.map(h => `<th>${h.label || ''}</th>`).join('')}</tr>`;
+      const tbody = items.map(item => {
+        const cells = d.headings.map(h => {
+          const val = item[h.key];
+          if (val === undefined || val === null) return '<td>—</td>';
+          if (typeof val === 'object') {
+            if (val.type === 'url') return `<td class="url-cell">${val.url || ''}</td>`;
+            if (val.type === 'bytes') return `<td class="size-cell">${formatBytes(val.value)}</td>`;
+            if (val.type === 'timespanMs') return `<td class="saving-cell">${formatMs(val.value)}</td>`;
+            if (val.type === 'thumbnail') return '<td>—</td>';
+            return `<td>${String(val.value || '').substring(0, 80)}</td>`;
+          }
+          if (h.valueType === 'bytes') return `<td class="size-cell">${formatBytes(val)}</td>`;
+          if (h.valueType === 'timespanMs') return `<td class="saving-cell">${formatMs(val)}</td>`;
+          return `<td>${String(val).substring(0, 120)}</td>`;
+        }).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
+      return `<table class="audit-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+    }
+
+    function toggleAudit(id) {
+      const el = document.getElementById(`audit-${id}`);
+      if (el) el.classList.toggle('open');
+    }
+
+    async function generateActionPlan() {
+      if (!lastPsiData) return;
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      document.getElementById('actionLoading').classList.add('visible');
+      document.getElementById('actionPlan').classList.remove('visible');
+
+      try {
+        const summary = buildPsiSummary(lastPsiData, lastUrl);
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            system: `You are a web performance expert specialising in Webflow sites. Given PageSpeed Insights results, produce a JSON array of actionable tasks. Each task: { "priority": "high|medium|low", "title": string, "action": string (plain English fix in 2-4 sentences, specific to Webflow where possible), "prompt": string (a ready-to-use Claude prompt the developer can paste to get implementation help) }. Return ONLY valid JSON array, no markdown fences, no preamble. Max 8 tasks ordered by impact.`,
+            messages: [{ role: 'user', content: `PageSpeed results for ${lastUrl} (${strategy}):\n\n${summary}\n\nGenerate actionable tasks to reach 90+ performance score.` }]
+          })
+        });
+        const data = await response.json();
+        const text = data.content?.find(b => b.type === 'text')?.text || '[]';
+        const tasks = JSON.parse(text.replace(/```json|```/g, '').trim());
+        renderActionPlan(tasks);
+      } catch (err) {
+        document.getElementById('actionPlan').innerHTML = `<p style="color:var(--bad);font-size:13px">Failed to generate action plan: ${err.message}</p>`;
+        document.getElementById('actionPlan').classList.add('visible');
+      } finally {
+        document.getElementById('actionLoading').classList.remove('visible');
+        btn.disabled = false;
+      }
+    }
+
+    function buildPsiSummary(data, url) {
+      const cats = data.lighthouseResult.categories;
+      const audits = data.lighthouseResult.audits;
+      const scores = Object.entries(cats).map(([k, v]) => `${k}: ${Math.round((v.score || 0) * 100)}`).join(', ');
+      const metrics = ['first-contentful-paint', 'largest-contentful-paint', 'total-blocking-time', 'cumulative-layout-shift', 'speed-index', 'interactive'].map(id => audits[id] ? `${id}: ${audits[id].displayValue}` : '').filter(Boolean).join(', ');
+      const failed = Object.values(audits).filter(a => a.score !== null && a.score < 0.9 && a.details?.items?.length).sort((a, b) => (a.score || 0) - (b.score || 0)).slice(0, 15).map(a => {
+        const saving = a.details?.overallSavingsMs ? ` (${formatMs(a.details.overallSavingsMs)} saving)` : '';
+        const topItems = (a.details?.items || []).slice(0, 3).map(item => {
+          const urlVal = Object.values(item).find(v => v?.type === 'url');
+          return urlVal?.url || (typeof item.url === 'string' ? item.url : '');
+        }).filter(Boolean).join(', ');
+        return `- ${a.title}${saving}${topItems ? ': ' + topItems : ''}`;
+      }).join('\n');
+      return `Scores: ${scores}\nMetrics: ${metrics}\nFailed audits:\n${failed}`;
+    }
+
+    function renderActionPlan(tasks) {
+      document.getElementById('actionPlan').innerHTML = tasks.map(task => `
+      <div class="action-task">
+        <div class="action-task-header">
+          <span class="task-priority ${task.priority}">${task.priority}</span>
+          <div class="task-title">${task.title}</div>
+        </div>
+        <div class="task-body">${task.action}</div>
+        <div class="task-prompt">
+          <div class="task-prompt-label">Claude prompt</div>
+          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+          <span class="prompt-text">${task.prompt}</span>
+        </div>
+      </div>`).join('');
+      document.getElementById('actionPlan').classList.add('visible');
+    }
+
+    function copyPrompt(btn) {
+      const text = btn.parentElement.querySelector('.prompt-text').textContent.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
     }
 
     async function logToSheet(data, url) {
       const cats = data.lighthouseResult.categories;
       const audits = data.lighthouseResult.audits;
-      const now = new Date();
-      const ts = now.toISOString();
-
-      const perf = Math.round((cats.performance?.score || 0) * 100);
-      const a11y = Math.round((cats.accessibility?.score || 0) * 100);
-      const bp = Math.round((cats['best-practices']?.score || 0) * 100);
-      const seo = Math.round((cats.seo?.score || 0) * 100);
-      const lcp = audits['largest-contentful-paint']?.displayValue || '';
-      const cls = audits['cumulative-layout-shift']?.displayValue || '';
-      const tbt = audits['total-blocking-time']?.displayValue || '';
-      const fcp = audits['first-contentful-paint']?.displayValue || '';
-      const tti = audits['interactive']?.displayValue || '';
-
-      const row = [[ts, url, strategy, perf, a11y, bp, seo, fcp, lcp, tbt, cls, tti]];
-
+      const row = [[new Date().toISOString(), url, strategy, Math.round((cats.performance?.score || 0) * 100), Math.round((cats.accessibility?.score || 0) * 100), Math.round((cats['best-practices']?.score || 0) * 100), Math.round((cats.seo?.score || 0) * 100), audits['first-contentful-paint']?.displayValue || '', audits['largest-contentful-paint']?.displayValue || '', audits['total-blocking-time']?.displayValue || '', audits['cumulative-layout-shift']?.displayValue || '', audits['interactive']?.displayValue || '']];
       try {
-        // Ensure header row exists
         await ensureHeader();
-
-        const appendRes = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ values: row })
-          }
-        );
-
-        if (!appendRes.ok) throw new Error('Sheet append failed');
-
+        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, { method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ values: row }) });
+        if (!res.ok) throw new Error();
         const notice = document.getElementById('logNotice');
-        notice.textContent = 'Logged to Sheets';
-        notice.className = 'log-notice';
-        notice.style.display = 'inline-block';
+        notice.textContent = 'Logged to Sheets'; notice.className = 'log-notice'; notice.style.display = 'inline-block';
         loadHistory();
-      } catch (err) {
+      } catch {
         const notice = document.getElementById('logNotice');
-        notice.textContent = 'Sheet log failed';
-        notice.className = 'log-notice error';
-        notice.style.display = 'inline-block';
+        notice.textContent = 'Sheet log failed'; notice.className = 'log-notice error'; notice.style.display = 'inline-block';
       }
     }
 
     async function ensureHeader() {
-      const getRes = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1`,
-        { headers: { 'Authorization': `Bearer ${accessToken}` } }
-      );
-      const data = await getRes.json();
-      if (data.values && data.values.length > 0) return;
-
-      const headers = [['Timestamp', 'URL', 'Strategy', 'Performance', 'Accessibility', 'Best Practices', 'SEO', 'FCP', 'LCP', 'TBT', 'CLS', 'TTI']];
-      await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1?valueInputOption=RAW`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ values: headers })
-        }
-      );
+      const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+      const data = await res.json();
+      if (data.values?.length > 0) return;
+      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1?valueInputOption=RAW`, { method: 'PUT', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ values: [['Timestamp', 'URL', 'Strategy', 'Performance', 'Accessibility', 'Best Practices', 'SEO', 'FCP', 'LCP', 'TBT', 'CLS', 'TTI']] }) });
     }
 
     async function loadHistory() {
       if (!accessToken) return;
       try {
-        const res = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:L50`,
-          { headers: { 'Authorization': `Bearer ${accessToken}` } }
-        );
+        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:L50`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
         const data = await res.json();
-        if (!data.values || data.values.length === 0) return;
-
-        const rows = data.values.slice().reverse().slice(0, 10);
-        const tbody = document.getElementById('historyBody');
-        tbody.innerHTML = rows.map(r => {
+        if (!data.values?.length) return;
+        document.getElementById('historyBody').innerHTML = data.values.slice().reverse().slice(0, 10).map(r => {
           const date = r[0] ? new Date(r[0]).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
-          const hostname = r[1] ? (() => { try { return new URL(r[1]).hostname; } catch (e) { return r[1]; } })() : '';
+          const host = r[1] ? (() => { try { return new URL(r[1]).hostname; } catch { return r[1]; } })() : '';
           const perf = parseInt(r[3]) || 0;
-          const cls = scoreClass(perf);
-          return `<tr>
-          <td>${date}</td>
-          <td>${hostname}</td>
-          <td>${r[2] || ''}</td>
-          <td class="score-cell ${cls}">${r[3] || ''}</td>
-          <td>${r[8] || ''}</td>
-          <td>${r[10] || ''}</td>
-          <td>${r[9] || ''}</td>
-        </tr>`;
+          return `<tr><td>${date}</td><td>${host}</td><td>${r[2] || ''}</td><td class="score-cell ${scoreClass(perf)}">${r[3] || ''}</td><td>${r[8] || ''}</td><td>${r[10] || ''}</td><td>${r[9] || ''}</td></tr>`;
         }).join('');
-
         document.getElementById('historySection').style.display = 'block';
-      } catch (e) {
-        // Silent fail for history
-      }
+      } catch { }
     }
 
     function showError(msg) {
@@ -980,14 +1282,10 @@
       el.classList.add('visible');
     }
 
-    // Allow Enter key to trigger run
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('urlInput').addEventListener('keydown', e => {
-        if (e.key === 'Enter') runCheck();
-      });
+      document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') runCheck(); });
     });
   </script>
-
 </body>
 
 </html>
