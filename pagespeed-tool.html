@@ -663,6 +663,52 @@
       display: block;
     }
 
+    .action-plan-confirm {
+      background: var(--surface);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .action-plan-confirm strong {
+      color: var(--accent);
+    }
+
+    .prompt-preview {
+      margin-top: 14px;
+    }
+
+    .prompt-preview summary {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-faint);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .prompt-preview summary:hover {
+      color: var(--accent);
+    }
+
+    .prompt-preview pre {
+      margin-top: 10px;
+      padding: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--info);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
     .action-task {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -924,20 +970,15 @@
         <div class="action-plan-header">
           <div>
             <div class="section-title" style="margin-bottom:4px">Action Plan</div>
-            <p style="font-size:13px;color:var(--text-muted)">Generate prioritised, actionable fixes using Claude.</p>
+            <p style="font-size:13px;color:var(--text-muted)">Copy a structured prompt to paste into Claude for prioritised, Webflow-specific fixes.</p>
           </div>
           <button class="generate-btn" id="generateBtn" onclick="generateActionPlan()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
             Generate action plan
           </button>
-        </div>
-        <div class="action-loading" id="actionLoading">
-          <div class="action-spinner"></div>
-          <span>Analysing results and generating fixes...</span>
         </div>
         <div class="action-plan" id="actionPlan"></div>
       </div>
@@ -1166,74 +1207,114 @@
     async function generateActionPlan() {
       if (!lastPsiData) return;
       const btn = document.getElementById('generateBtn');
-      btn.disabled = true;
-      document.getElementById('actionLoading').classList.add('visible');
-      document.getElementById('actionPlan').classList.remove('visible');
+      const planEl = document.getElementById('actionPlan');
+      const prompt = buildActionPlanPrompt(lastPsiData, lastUrl);
 
       try {
-        const summary = buildPsiSummary(lastPsiData, lastUrl);
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            system: `You are a web performance expert specialising in Webflow sites. Given PageSpeed Insights results, produce a JSON array of actionable tasks. Each task: { "priority": "high|medium|low", "title": string, "action": string (plain English fix in 2-4 sentences, specific to Webflow where possible), "prompt": string (a ready-to-use Claude prompt the developer can paste to get implementation help) }. Return ONLY valid JSON array, no markdown fences, no preamble. Max 8 tasks ordered by impact.`,
-            messages: [{ role: 'user', content: `PageSpeed results for ${lastUrl} (${strategy}):\n\n${summary}\n\nGenerate actionable tasks to reach 90+ performance score.` }]
-          })
-        });
-        const data = await response.json();
-        const text = data.content?.find(b => b.type === 'text')?.text || '[]';
-        const tasks = JSON.parse(text.replace(/```json|```/g, '').trim());
-        renderActionPlan(tasks);
+        await navigator.clipboard.writeText(prompt);
+        planEl.innerHTML = `<div class="action-plan-confirm">
+          <p><strong>Prompt copied to clipboard.</strong> Paste it into Claude to get a prioritised action plan with Webflow-specific fixes.</p>
+          <details class="prompt-preview">
+            <summary>Preview prompt</summary>
+            <pre>${escapeHtml(prompt)}</pre>
+          </details>
+        </div>`;
+        planEl.classList.add('visible');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        setTimeout(() => { btn.innerHTML = originalHtml; }, 2500);
       } catch (err) {
-        document.getElementById('actionPlan').innerHTML = `<p style="color:var(--bad);font-size:13px">Failed to generate action plan: ${err.message}</p>`;
-        document.getElementById('actionPlan').classList.add('visible');
-      } finally {
-        document.getElementById('actionLoading').classList.remove('visible');
-        btn.disabled = false;
+        planEl.innerHTML = `<div class="action-plan-confirm">
+          <p style="color:var(--bad)">Could not copy automatically: ${escapeHtml(err.message)}</p>
+          <p>Select and copy the prompt below:</p>
+          <pre class="prompt-preview">${escapeHtml(prompt)}</pre>
+        </div>`;
+        planEl.classList.add('visible');
       }
     }
 
-    function buildPsiSummary(data, url) {
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function extractAuditResources(item) {
+      const urls = [];
+      for (const val of Object.values(item)) {
+        if (val?.type === 'url' && val.url) urls.push(val.url);
+      }
+      if (typeof item.url === 'string') urls.push(item.url);
+      if (item.source?.url) urls.push(item.source.url);
+      return urls;
+    }
+
+    function formatAuditSavings(audit) {
+      const d = audit.details;
+      if (!d) return '';
+      if (d.overallSavingsMs) return ` — potential saving: ${formatMs(d.overallSavingsMs)}`;
+      if (d.overallSavingsBytes) return ` — potential saving: ${formatBytes(d.overallSavingsBytes)}`;
+      return '';
+    }
+
+    function formatAuditForPrompt(audit) {
+      const score = audit.score === null ? 'n/a' : `${Math.round(audit.score * 100)}/100`;
+      const resources = [...new Set((audit.details?.items || []).slice(0, 5).flatMap(extractAuditResources).filter(Boolean))];
+      const filesLine = resources.length ? `\n    Files/resources:\n${resources.map(u => `    - ${u}`).join('\n')}` : '';
+      return `- ${audit.title} (score: ${score})${formatAuditSavings(audit)}${filesLine}`;
+    }
+
+    function getTopFailingAudits(audits) {
+      const opps = Object.values(audits)
+        .filter(a => a.details?.type === 'opportunity' && a.score !== null && a.score < 1)
+        .sort((a, b) => (b.details?.overallSavingsMs || 0) - (a.details?.overallSavingsMs || 0));
+      const oppIds = new Set(opps.map(o => o.id));
+      const others = Object.values(audits)
+        .filter(a => a.score !== null && a.score < 0.9 && !oppIds.has(a.id))
+        .filter(a => a.details?.items?.length)
+        .sort((a, b) => (a.score || 0) - (b.score || 0));
+      return [...opps, ...others].slice(0, 12);
+    }
+
+    function buildActionPlanPrompt(data, url) {
       const cats = data.lighthouseResult.categories;
       const audits = data.lighthouseResult.audits;
-      const scores = Object.entries(cats).map(([k, v]) => `${k}: ${Math.round((v.score || 0) * 100)}`).join(', ');
-      const metrics = ['first-contentful-paint', 'largest-contentful-paint', 'total-blocking-time', 'cumulative-layout-shift', 'speed-index', 'interactive'].map(id => audits[id] ? `${id}: ${audits[id].displayValue}` : '').filter(Boolean).join(', ');
-      const failed = Object.values(audits).filter(a => a.score !== null && a.score < 0.9 && a.details?.items?.length).sort((a, b) => (a.score || 0) - (b.score || 0)).slice(0, 15).map(a => {
-        const saving = a.details?.overallSavingsMs ? ` (${formatMs(a.details.overallSavingsMs)} saving)` : '';
-        const topItems = (a.details?.items || []).slice(0, 3).map(item => {
-          const urlVal = Object.values(item).find(v => v?.type === 'url');
-          return urlVal?.url || (typeof item.url === 'string' ? item.url : '');
-        }).filter(Boolean).join(', ');
-        return `- ${a.title}${saving}${topItems ? ': ' + topItems : ''}`;
-      }).join('\n');
-      return `Scores: ${scores}\nMetrics: ${metrics}\nFailed audits:\n${failed}`;
-    }
+      const categoryLines = [
+        { key: 'performance', label: 'Performance' },
+        { key: 'accessibility', label: 'Accessibility' },
+        { key: 'best-practices', label: 'Best Practices' },
+        { key: 'seo', label: 'SEO' }
+      ].map(({ key, label }) => `${label}: ${Math.round((cats[key]?.score || 0) * 100)}/100`).join('\n');
 
-    function renderActionPlan(tasks) {
-      document.getElementById('actionPlan').innerHTML = tasks.map(task => `
-      <div class="action-task">
-        <div class="action-task-header">
-          <span class="task-priority ${task.priority}">${task.priority}</span>
-          <div class="task-title">${task.title}</div>
-        </div>
-        <div class="task-body">${task.action}</div>
-        <div class="task-prompt">
-          <div class="task-prompt-label">Claude prompt</div>
-          <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
-          <span class="prompt-text">${task.prompt}</span>
-        </div>
-      </div>`).join('');
-      document.getElementById('actionPlan').classList.add('visible');
-    }
+      const metricLines = [
+        { id: 'first-contentful-paint', label: 'FCP (First Contentful Paint)' },
+        { id: 'largest-contentful-paint', label: 'LCP (Largest Contentful Paint)' },
+        { id: 'total-blocking-time', label: 'TBT (Total Blocking Time)' },
+        { id: 'cumulative-layout-shift', label: 'CLS (Cumulative Layout Shift)' },
+        { id: 'speed-index', label: 'Speed Index' },
+        { id: 'interactive', label: 'TTI (Time to Interactive)' }
+      ].map(m => {
+        const a = audits[m.id];
+        return a ? `${m.label}: ${a.displayValue}` : null;
+      }).filter(Boolean).join('\n');
 
-    function copyPrompt(btn) {
-      const text = btn.parentElement.querySelector('.prompt-text').textContent.trim();
-      navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'Copied';
-        setTimeout(() => btn.textContent = 'Copy', 2000);
-      });
+      const failingAudits = getTopFailingAudits(audits).map(formatAuditForPrompt).join('\n\n');
+
+      return `You are a web performance expert specialising in Webflow sites. Review the PageSpeed Insights results below and provide a prioritised list of actionable fixes (5–8 items). Each fix should be specific to Webflow where possible (Designer settings, asset uploads, custom code embeds, CMS/collection templates, interactions, third-party scripts, etc.). Order by impact on the performance score. Target: reach 90+ on Performance.
+
+## Page tested
+URL: ${url}
+Strategy: ${strategy}
+
+## Lighthouse category scores
+${categoryLines}
+
+## Core Web Vitals & key metrics
+${metricLines}
+
+## Top failing audits & opportunities
+${failingAudits || '(No failing audits with resource details found)'}
+
+## Your task
+Provide prioritised, Webflow-specific fixes for the issues above. For each item include: priority (high/medium/low), what is wrong, the exact fix steps in Webflow, and expected impact on Core Web Vitals or the performance score.`;
     }
 
     async function logToSheet(data, url) {
