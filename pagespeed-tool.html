@@ -1,880 +1,963 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Page Speed Tool — Forme</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #0e0e0f;
-    --surface: #161618;
-    --surface-2: #1e1e21;
-    --border: #2a2a2e;
-    --text: #e8e8ea;
-    --text-muted: #6b6b72;
-    --text-faint: #3a3a3f;
-    --accent: #c8f060;
-    --accent-dim: rgba(200, 240, 96, 0.12);
-    --accent-border: rgba(200, 240, 96, 0.3);
-    --good: #4ade80;
-    --warn: #fbbf24;
-    --bad: #f87171;
-    --good-bg: rgba(74, 222, 128, 0.08);
-    --warn-bg: rgba(251, 191, 36, 0.08);
-    --bad-bg: rgba(248, 113, 113, 0.08);
-    --font-mono: 'DM Mono', monospace;
-    --font-sans: 'DM Sans', sans-serif;
-    --radius: 8px;
-    --radius-lg: 12px;
-  }
-
-  html { font-size: 16px; }
-
-  body {
-    font-family: var(--font-sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.5;
-  }
-
-  /* Layout */
-  .app {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 48px 24px 80px;
-  }
-
-  /* Header */
-  .header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 48px;
-    gap: 16px;
-  }
-
-  .wordmark {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .wordmark span {
-    color: var(--accent);
-  }
-
-  .auth-btn {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    font-weight: 500;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-
-  .auth-btn:hover {
-    border-color: var(--accent-border);
-    color: var(--accent);
-  }
-
-  .auth-btn.signed-in {
-    border-color: rgba(74, 222, 128, 0.3);
-    color: var(--good);
-  }
-
-  /* Hero */
-  .hero {
-    margin-bottom: 40px;
-  }
-
-  .hero h1 {
-    font-family: var(--font-mono);
-    font-size: clamp(28px, 5vw, 44px);
-    font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: var(--text);
-    margin-bottom: 12px;
-  }
-
-  .hero h1 em {
-    font-style: normal;
-    color: var(--accent);
-  }
-
-  .hero p {
-    font-size: 15px;
-    color: var(--text-muted);
-    max-width: 480px;
-  }
-
-  /* Input panel */
-  .input-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    margin-bottom: 32px;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .url-input {
-    flex: 1;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 14px;
-    border-radius: var(--radius);
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .url-input::placeholder { color: var(--text-faint); }
-
-  .url-input:focus {
-    border-color: var(--accent-border);
-  }
-
-  .strategy-toggle {
-    display: flex;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-
-  .strategy-toggle button {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    font-weight: 500;
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    padding: 10px 16px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .strategy-toggle button.active {
-    background: var(--accent-dim);
-    color: var(--accent);
-  }
-
-  .run-btn {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 500;
-    background: var(--accent);
-    border: none;
-    color: #0e0e0f;
-    padding: 10px 24px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-  }
-
-  .run-btn:hover { background: #d4f570; }
-  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .input-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--text-faint);
-  }
-
-  .sheet-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--text-faint);
-    margin-left: auto;
-  }
-
-  .sheet-status.ready { color: var(--good); }
-  .sheet-status.error { color: var(--bad); }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-  }
-
-  /* Loading */
-  .loading {
-    display: none;
-    text-align: center;
-    padding: 48px 0;
-  }
-
-  .loading.visible { display: block; }
-
-  .spinner {
-    width: 32px;
-    height: 32px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading p {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  /* Results */
-  .results { display: none; }
-  .results.visible { display: block; }
-
-  .results-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    gap: 16px;
-  }
-
-  .results-meta {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .results-meta strong {
-    color: var(--text);
-    font-weight: 500;
-  }
-
-  .log-notice {
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 4px;
-    background: var(--good-bg);
-    color: var(--good);
-    border: 1px solid rgba(74, 222, 128, 0.2);
-  }
-
-  .log-notice.error {
-    background: var(--bad-bg);
-    color: var(--bad);
-    border-color: rgba(248, 113, 113, 0.2);
-  }
-
-  /* Score grid */
-  .scores {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  @media (max-width: 600px) {
-    .scores { grid-template-columns: repeat(2, 1fr); }
-    .input-row { flex-wrap: wrap; }
-  }
-
-  .score-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px 16px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .score-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-
-  .score-card.good::before { background: var(--good); }
-  .score-card.warn::before { background: var(--warn); }
-  .score-card.bad::before { background: var(--bad); }
-
-  .score-value {
-    font-family: var(--font-mono);
-    font-size: 36px;
-    font-weight: 400;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-
-  .score-card.good .score-value { color: var(--good); }
-  .score-card.warn .score-value { color: var(--warn); }
-  .score-card.bad .score-value { color: var(--bad); }
-
-  .score-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  /* Metrics */
-  .section-title {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 12px;
-  }
-
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 28px;
-  }
-
-  @media (max-width: 600px) {
-    .metrics { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  .metric {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-  }
-
-  .metric-value {
-    font-family: var(--font-mono);
-    font-size: 20px;
-    font-weight: 400;
-    margin-bottom: 4px;
-  }
-
-  .metric.good .metric-value { color: var(--good); }
-  .metric.warn .metric-value { color: var(--warn); }
-  .metric.bad .metric-value { color: var(--bad); }
-
-  .metric-name {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  /* Opportunities */
-  .opportunities {
-    margin-bottom: 28px;
-  }
-
-  .opp-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 8px;
-  }
-
-  .opp-saving {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--warn);
-    background: var(--warn-bg);
-    padding: 2px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .opp-title {
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 2px;
-  }
-
-  .opp-desc {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.5;
-  }
-
-  /* History */
-  .history-section {
-    margin-top: 40px;
-    border-top: 1px solid var(--border);
-    padding-top: 32px;
-  }
-
-  .history-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-
-  .history-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  .history-table th {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    text-align: left;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .history-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--text-faint);
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
-
-  .history-table tr:last-child td { border-bottom: none; }
-
-  .history-table td.score-cell {
-    font-weight: 500;
-  }
-
-  .history-table td.score-cell.good { color: var(--good); }
-  .history-table td.score-cell.warn { color: var(--warn); }
-  .history-table td.score-cell.bad { color: var(--bad); }
-
-  /* Error */
-  .error-msg {
-    display: none;
-    background: var(--bad-bg);
-    border: 1px solid rgba(248, 113, 113, 0.2);
-    border-radius: var(--radius);
-    padding: 16px;
-    font-size: 14px;
-    color: var(--bad);
-    margin-bottom: 24px;
-  }
-
-  .error-msg.visible { display: block; }
-
-  /* Sheet link */
-  .sheet-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-
-  .sheet-link:hover { color: var(--accent); }
-
-  .sheet-link svg { flex-shrink: 0; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Speed Tool — Forme</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0e0e0f;
+      --surface: #161618;
+      --surface-2: #1e1e21;
+      --border: #2a2a2e;
+      --text: #e8e8ea;
+      --text-muted: #6b6b72;
+      --text-faint: #3a3a3f;
+      --accent: #c8f060;
+      --accent-dim: rgba(200, 240, 96, 0.12);
+      --accent-border: rgba(200, 240, 96, 0.3);
+      --good: #4ade80;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --good-bg: rgba(74, 222, 128, 0.08);
+      --warn-bg: rgba(251, 191, 36, 0.08);
+      --bad-bg: rgba(248, 113, 113, 0.08);
+      --font-mono: 'DM Mono', monospace;
+      --font-sans: 'DM Sans', sans-serif;
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Layout */
+    .app {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      gap: 16px;
+    }
+
+    .wordmark {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .wordmark span {
+      color: var(--accent);
+    }
+
+    .auth-btn {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .auth-btn:hover {
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .auth-btn.signed-in {
+      border-color: rgba(74, 222, 128, 0.3);
+      color: var(--good);
+    }
+
+    /* Hero */
+    .hero {
+      margin-bottom: 40px;
+    }
+
+    .hero h1 {
+      font-family: var(--font-mono);
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero p {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 480px;
+    }
+
+    /* Input panel */
+    .input-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .url-input {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .url-input::placeholder {
+      color: var(--text-faint);
+    }
+
+    .url-input:focus {
+      border-color: var(--accent-border);
+    }
+
+    .strategy-toggle {
+      display: flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .strategy-toggle button {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .strategy-toggle button.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .run-btn {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--accent);
+      border: none;
+      color: #0e0e0f;
+      padding: 10px 24px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .run-btn:hover {
+      background: #d4f570;
+    }
+
+    .run-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .input-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-faint);
+    }
+
+    .sheet-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-faint);
+      margin-left: auto;
+    }
+
+    .sheet-status.ready {
+      color: var(--good);
+    }
+
+    .sheet-status.error {
+      color: var(--bad);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Loading */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 48px 0;
+    }
+
+    .loading.visible {
+      display: block;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading p {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Results */
+    .results {
+      display: none;
+    }
+
+    .results.visible {
+      display: block;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+
+    .results-meta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .results-meta strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .log-notice {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--good-bg);
+      color: var(--good);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+    }
+
+    .log-notice.error {
+      background: var(--bad-bg);
+      color: var(--bad);
+      border-color: rgba(248, 113, 113, 0.2);
+    }
+
+    /* Score grid */
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 600px) {
+      .scores {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .input-row {
+        flex-wrap: wrap;
+      }
+    }
+
+    .score-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    .score-card.good::before {
+      background: var(--good);
+    }
+
+    .score-card.warn::before {
+      background: var(--warn);
+    }
+
+    .score-card.bad::before {
+      background: var(--bad);
+    }
+
+    .score-value {
+      font-family: var(--font-mono);
+      font-size: 36px;
+      font-weight: 400;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .score-card.good .score-value {
+      color: var(--good);
+    }
+
+    .score-card.warn .score-value {
+      color: var(--warn);
+    }
+
+    .score-card.bad .score-value {
+      color: var(--bad);
+    }
+
+    .score-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Metrics */
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 600px) {
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 4px;
+    }
+
+    .metric.good .metric-value {
+      color: var(--good);
+    }
+
+    .metric.warn .metric-value {
+      color: var(--warn);
+    }
+
+    .metric.bad .metric-value {
+      color: var(--bad);
+    }
+
+    .metric-name {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Opportunities */
+    .opportunities {
+      margin-bottom: 28px;
+    }
+
+    .opp-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+    }
+
+    .opp-saving {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--warn);
+      background: var(--warn-bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .opp-title {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .opp-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* History */
+    .history-section {
+      margin-top: 40px;
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .history-table th {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--text-faint);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .history-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .history-table td.score-cell {
+      font-weight: 500;
+    }
+
+    .history-table td.score-cell.good {
+      color: var(--good);
+    }
+
+    .history-table td.score-cell.warn {
+      color: var(--warn);
+    }
+
+    .history-table td.score-cell.bad {
+      color: var(--bad);
+    }
+
+    /* Error */
+    .error-msg {
+      display: none;
+      background: var(--bad-bg);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      border-radius: var(--radius);
+      padding: 16px;
+      font-size: 14px;
+      color: var(--bad);
+      margin-bottom: 24px;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    /* Sheet link */
+    .sheet-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .sheet-link:hover {
+      color: var(--accent);
+    }
+
+    .sheet-link svg {
+      flex-shrink: 0;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="app">
+  <div class="app">
 
-  <header class="header">
-    <div class="wordmark"><span>Forme</span> / Speed</div>
-    <button class="auth-btn" id="authBtn" onclick="handleAuth()">Sign in with Google</button>
-  </header>
+    <header class="header">
+      <div class="wordmark"><span>Forme</span> / Speed</div>
+      <button class="auth-btn" id="authBtn" onclick="handleAuth()">Sign in with Google</button>
+    </header>
 
-  <div class="hero">
-    <h1>Page speed<br><em>at a glance.</em></h1>
-    <p>Run PageSpeed Insights checks and log results to Google Sheets for ongoing performance tracking.</p>
-  </div>
-
-  <div class="input-panel">
-    <div class="input-row">
-      <input
-        type="url"
-        class="url-input"
-        id="urlInput"
-        placeholder="https://nory.ai"
-        value="https://nory.ai"
-      >
-      <div class="strategy-toggle">
-        <button class="active" id="mobileBtn" onclick="setStrategy('mobile')">Mobile</button>
-        <button id="desktopBtn" onclick="setStrategy('desktop')">Desktop</button>
-      </div>
-      <button class="run-btn" id="runBtn" onclick="runCheck()">Run check</button>
+    <div class="hero">
+      <h1>Page speed<br><em>at a glance.</em></h1>
+      <p>Run PageSpeed Insights checks and log results to Google Sheets for ongoing performance tracking.</p>
     </div>
-    <div class="input-meta">
-      <span>Results logged to Google Sheets automatically when signed in.</span>
-      <div class="sheet-status" id="sheetStatus">
-        <div class="dot"></div>
-        <span>Not signed in</span>
+
+    <div class="input-panel">
+      <div class="input-row">
+        <input type="url" class="url-input" id="urlInput" placeholder="https://nory.ai" value="https://nory.ai">
+        <div class="strategy-toggle">
+          <button class="active" id="mobileBtn" onclick="setStrategy('mobile')">Mobile</button>
+          <button id="desktopBtn" onclick="setStrategy('desktop')">Desktop</button>
+        </div>
+        <button class="run-btn" id="runBtn" onclick="runCheck()">Run check</button>
+      </div>
+      <div class="input-meta">
+        <span>Results logged to Google Sheets automatically when signed in.</span>
+        <div class="sheet-status" id="sheetStatus">
+          <div class="dot"></div>
+          <span>Not signed in</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="error-msg" id="errorMsg"></div>
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <p>Running PageSpeed analysis...</p>
-  </div>
-
-  <div class="results" id="results">
-    <div class="results-header">
-      <div class="results-meta" id="resultsMeta"></div>
-      <div class="log-notice" id="logNotice" style="display:none"></div>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Running PageSpeed analysis...</p>
     </div>
 
-    <div class="scores" id="scoresGrid"></div>
+    <div class="results" id="results">
+      <div class="results-header">
+        <div class="results-meta" id="resultsMeta"></div>
+        <div class="log-notice" id="logNotice" style="display:none"></div>
+      </div>
 
-    <div class="section-title">Core Web Vitals</div>
-    <div class="metrics" id="metricsGrid"></div>
+      <div class="scores" id="scoresGrid"></div>
 
-    <div class="opportunities" id="opportunitiesSection">
-      <div class="section-title">Top Opportunities</div>
-      <div id="opportunitiesList"></div>
+      <div class="section-title">Core Web Vitals</div>
+      <div class="metrics" id="metricsGrid"></div>
+
+      <div class="opportunities" id="opportunitiesSection">
+        <div class="section-title">Top Opportunities</div>
+        <div id="opportunitiesList"></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 8px;">
+        <a href="https://docs.google.com/spreadsheets/d/1eAL61WfIlZKNY6EVfkgw36DwiNmYj4lqQd7efmHbRQA/edit"
+          target="_blank" class="sheet-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          View in Google Sheets
+        </a>
+      </div>
     </div>
 
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 8px;">
-      <a href="https://docs.google.com/spreadsheets/d/1eAL61WfIlZKNY6EVfkgw36DwiNmYj4lqQd7efmHbRQA/edit" target="_blank" class="sheet-link">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        View in Google Sheets
-      </a>
+    <div class="history-section" id="historySection" style="display:none">
+      <div class="history-header">
+        <div class="section-title" style="margin-bottom:0">Recent runs</div>
+      </div>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>URL</th>
+            <th>Strategy</th>
+            <th>Perf</th>
+            <th>LCP</th>
+            <th>CLS</th>
+            <th>FID/INP</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
     </div>
+
   </div>
 
-  <div class="history-section" id="historySection" style="display:none">
-    <div class="history-header">
-      <div class="section-title" style="margin-bottom:0">Recent runs</div>
-    </div>
-    <table class="history-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>URL</th>
-          <th>Strategy</th>
-          <th>Perf</th>
-          <th>LCP</th>
-          <th>CLS</th>
-          <th>FID/INP</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody"></tbody>
-    </table>
-  </div>
+  <script>
+    // ---- CONFIG — replace these placeholders ----
+    const PSI_API_KEY = 'AlzaSyAoNeV7wiBWUHc8l1mi-VyQiDW-6jS7UYA';
+    const OAUTH_CLIENT_ID = '210799935917-busu8g202vr38p7s756dh2hpp9qk66al.apps.googleusercontent.com';
+    const SHEET_ID = '1eAL61WfIlZKNY6EVfkgw36DwiNmYj4lqQd7efmHbRQA';
+    const SHEET_NAME = 'Sheet1';
+    // -----------------------------------------------
 
-</div>
+    const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
-<script>
-  // ---- CONFIG — replace these placeholders ----
-  const PSI_API_KEY     = 'AlzaSyAoNeV7wiBWUHc811mi-VyQiDW-6jS7UYA';
-  const OAUTH_CLIENT_ID = '210799935917-busu8g202vr38p7s756dh2hpp9qk66al.apps.googleusercontent.com';
-  const SHEET_ID        = '1eAL61WfIlZKNY6EVfkgw36DwiNmYj4lqQd7efmHbRQA';
-  const SHEET_NAME      = 'Sheet1';
-  // -----------------------------------------------
+    let strategy = 'mobile';
+    let accessToken = null;
+    let tokenClient = null;
 
-  const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-
-  let strategy = 'mobile';
-  let accessToken = null;
-  let tokenClient = null;
-
-  // Init Google Identity
-  window.addEventListener('load', () => {
-    if (typeof google === 'undefined') return;
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: OAUTH_CLIENT_ID,
-      scope: SCOPES,
-      callback: (response) => {
-        if (response.error) return;
-        accessToken = response.access_token;
-        setSignedIn(true);
-        loadHistory();
-      }
+    // Init Google Identity
+    window.addEventListener('load', () => {
+      if (typeof google === 'undefined') return;
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: OAUTH_CLIENT_ID,
+        scope: SCOPES,
+        callback: (response) => {
+          if (response.error) return;
+          accessToken = response.access_token;
+          setSignedIn(true);
+          loadHistory();
+        }
+      });
     });
-  });
 
-  function handleAuth() {
-    if (accessToken) {
-      accessToken = null;
-      setSignedIn(false);
-      return;
+    function handleAuth() {
+      if (accessToken) {
+        accessToken = null;
+        setSignedIn(false);
+        return;
+      }
+      tokenClient.requestAccessToken({ prompt: 'consent' });
     }
-    tokenClient.requestAccessToken({ prompt: 'consent' });
-  }
 
-  function setSignedIn(yes) {
-    const btn = document.getElementById('authBtn');
-    const status = document.getElementById('sheetStatus');
-    if (yes) {
-      btn.textContent = 'Sign out';
-      btn.classList.add('signed-in');
-      status.className = 'sheet-status ready';
-      status.innerHTML = '<div class="dot"></div><span>Logging to Sheets</span>';
-    } else {
-      btn.textContent = 'Sign in with Google';
-      btn.classList.remove('signed-in');
-      status.className = 'sheet-status';
-      status.innerHTML = '<div class="dot"></div><span>Not signed in</span>';
+    function setSignedIn(yes) {
+      const btn = document.getElementById('authBtn');
+      const status = document.getElementById('sheetStatus');
+      if (yes) {
+        btn.textContent = 'Sign out';
+        btn.classList.add('signed-in');
+        status.className = 'sheet-status ready';
+        status.innerHTML = '<div class="dot"></div><span>Logging to Sheets</span>';
+      } else {
+        btn.textContent = 'Sign in with Google';
+        btn.classList.remove('signed-in');
+        status.className = 'sheet-status';
+        status.innerHTML = '<div class="dot"></div><span>Not signed in</span>';
+      }
     }
-  }
 
-  function setStrategy(s) {
-    strategy = s;
-    document.getElementById('mobileBtn').classList.toggle('active', s === 'mobile');
-    document.getElementById('desktopBtn').classList.toggle('active', s === 'desktop');
-  }
-
-  function scoreClass(n) {
-    if (n >= 90) return 'good';
-    if (n >= 50) return 'warn';
-    return 'bad';
-  }
-
-  function metricClass(id, value) {
-    const thresholds = {
-      'first-contentful-paint': [1800, 3000],
-      'largest-contentful-paint': [2500, 4000],
-      'total-blocking-time': [200, 600],
-      'cumulative-layout-shift': [0.1, 0.25],
-      'speed-index': [3400, 5800],
-      'interactive': [3800, 7300]
-    };
-    const t = thresholds[id];
-    if (!t) return '';
-    if (value <= t[0]) return 'good';
-    if (value <= t[1]) return 'warn';
-    return 'bad';
-  }
-
-  async function runCheck() {
-    const url = document.getElementById('urlInput').value.trim();
-    if (!url) return;
-
-    document.getElementById('errorMsg').classList.remove('visible');
-    document.getElementById('results').classList.remove('visible');
-    document.getElementById('loading').classList.add('visible');
-    document.getElementById('runBtn').disabled = true;
-
-    try {
-      const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&key=${PSI_API_KEY}&category=performance&category=accessibility&category=best-practices&category=seo`;
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error(`API error ${res.status}`);
-      const data = await res.json();
-      renderResults(data, url);
-      if (accessToken) logToSheet(data, url);
-    } catch (err) {
-      showError(err.message);
-    } finally {
-      document.getElementById('loading').classList.remove('visible');
-      document.getElementById('runBtn').disabled = false;
+    function setStrategy(s) {
+      strategy = s;
+      document.getElementById('mobileBtn').classList.toggle('active', s === 'mobile');
+      document.getElementById('desktopBtn').classList.toggle('active', s === 'desktop');
     }
-  }
 
-  function renderResults(data, url) {
-    const cats = data.lighthouseResult.categories;
-    const audits = data.lighthouseResult.audits;
+    function scoreClass(n) {
+      if (n >= 90) return 'good';
+      if (n >= 50) return 'warn';
+      return 'bad';
+    }
 
-    // Scores
-    const scoreItems = [
-      { key: 'performance', label: 'Performance' },
-      { key: 'accessibility', label: 'Accessibility' },
-      { key: 'best-practices', label: 'Best Practices' },
-      { key: 'seo', label: 'SEO' }
-    ];
+    function metricClass(id, value) {
+      const thresholds = {
+        'first-contentful-paint': [1800, 3000],
+        'largest-contentful-paint': [2500, 4000],
+        'total-blocking-time': [200, 600],
+        'cumulative-layout-shift': [0.1, 0.25],
+        'speed-index': [3400, 5800],
+        'interactive': [3800, 7300]
+      };
+      const t = thresholds[id];
+      if (!t) return '';
+      if (value <= t[0]) return 'good';
+      if (value <= t[1]) return 'warn';
+      return 'bad';
+    }
 
-    const scoresGrid = document.getElementById('scoresGrid');
-    scoresGrid.innerHTML = scoreItems.map(s => {
-      const score = Math.round((cats[s.key]?.score || 0) * 100);
-      const cls = scoreClass(score);
-      return `<div class="score-card ${cls}">
+    async function runCheck() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) return;
+
+      document.getElementById('errorMsg').classList.remove('visible');
+      document.getElementById('results').classList.remove('visible');
+      document.getElementById('loading').classList.add('visible');
+      document.getElementById('runBtn').disabled = true;
+
+      try {
+        const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&key=${PSI_API_KEY}&category=performance&category=accessibility&category=best-practices&category=seo`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        const data = await res.json();
+        renderResults(data, url);
+        if (accessToken) logToSheet(data, url);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        document.getElementById('loading').classList.remove('visible');
+        document.getElementById('runBtn').disabled = false;
+      }
+    }
+
+    function renderResults(data, url) {
+      const cats = data.lighthouseResult.categories;
+      const audits = data.lighthouseResult.audits;
+
+      // Scores
+      const scoreItems = [
+        { key: 'performance', label: 'Performance' },
+        { key: 'accessibility', label: 'Accessibility' },
+        { key: 'best-practices', label: 'Best Practices' },
+        { key: 'seo', label: 'SEO' }
+      ];
+
+      const scoresGrid = document.getElementById('scoresGrid');
+      scoresGrid.innerHTML = scoreItems.map(s => {
+        const score = Math.round((cats[s.key]?.score || 0) * 100);
+        const cls = scoreClass(score);
+        return `<div class="score-card ${cls}">
         <div class="score-value">${score}</div>
         <div class="score-label">${s.label}</div>
       </div>`;
-    }).join('');
+      }).join('');
 
-    // Core metrics
-    const metricItems = [
-      { id: 'first-contentful-paint', label: 'FCP' },
-      { id: 'largest-contentful-paint', label: 'LCP' },
-      { id: 'total-blocking-time', label: 'TBT' },
-      { id: 'cumulative-layout-shift', label: 'CLS' },
-      { id: 'speed-index', label: 'Speed Index' },
-      { id: 'interactive', label: 'TTI' }
-    ];
+      // Core metrics
+      const metricItems = [
+        { id: 'first-contentful-paint', label: 'FCP' },
+        { id: 'largest-contentful-paint', label: 'LCP' },
+        { id: 'total-blocking-time', label: 'TBT' },
+        { id: 'cumulative-layout-shift', label: 'CLS' },
+        { id: 'speed-index', label: 'Speed Index' },
+        { id: 'interactive', label: 'TTI' }
+      ];
 
-    const metricsGrid = document.getElementById('metricsGrid');
-    metricsGrid.innerHTML = metricItems.map(m => {
-      const audit = audits[m.id];
-      if (!audit) return '';
-      const numericValue = audit.numericValue || 0;
-      const cls = metricClass(m.id, numericValue);
-      return `<div class="metric ${cls}">
+      const metricsGrid = document.getElementById('metricsGrid');
+      metricsGrid.innerHTML = metricItems.map(m => {
+        const audit = audits[m.id];
+        if (!audit) return '';
+        const numericValue = audit.numericValue || 0;
+        const cls = metricClass(m.id, numericValue);
+        return `<div class="metric ${cls}">
         <div class="metric-value">${audit.displayValue || '—'}</div>
         <div class="metric-name">${m.label}</div>
       </div>`;
-    }).join('');
+      }).join('');
 
-    // Opportunities
-    const oppList = document.getElementById('opportunitiesList');
-    const opps = Object.values(audits)
-      .filter(a => a.details?.type === 'opportunity' && a.details?.overallSavingsMs > 100)
-      .sort((a, b) => (b.details.overallSavingsMs || 0) - (a.details.overallSavingsMs || 0))
-      .slice(0, 6);
+      // Opportunities
+      const oppList = document.getElementById('opportunitiesList');
+      const opps = Object.values(audits)
+        .filter(a => a.details?.type === 'opportunity' && a.details?.overallSavingsMs > 100)
+        .sort((a, b) => (b.details.overallSavingsMs || 0) - (a.details.overallSavingsMs || 0))
+        .slice(0, 6);
 
-    if (opps.length) {
-      oppList.innerHTML = opps.map(o => {
-        const saving = o.details.overallSavingsMs
-          ? `${(o.details.overallSavingsMs / 1000).toFixed(1)}s`
-          : '';
-        return `<div class="opp-item">
+      if (opps.length) {
+        oppList.innerHTML = opps.map(o => {
+          const saving = o.details.overallSavingsMs
+            ? `${(o.details.overallSavingsMs / 1000).toFixed(1)}s`
+            : '';
+          return `<div class="opp-item">
           ${saving ? `<div class="opp-saving">${saving}</div>` : ''}
           <div>
             <div class="opp-title">${o.title}</div>
             <div class="opp-desc">${o.description?.replace(/\[.*?\]\(.*?\)/g, '').substring(0, 140) || ''}</div>
           </div>
         </div>`;
-      }).join('');
-    } else {
-      oppList.innerHTML = '<p style="font-size:13px;color:var(--text-muted)">No major opportunities found.</p>';
+        }).join('');
+      } else {
+        oppList.innerHTML = '<p style="font-size:13px;color:var(--text-muted)">No major opportunities found.</p>';
+      }
+
+      // Meta
+      const now = new Date();
+      const ts = now.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      document.getElementById('resultsMeta').innerHTML = `<strong>${new URL(url).hostname}</strong> &middot; ${strategy} &middot; ${ts}`;
+
+      document.getElementById('results').classList.add('visible');
+      document.getElementById('logNotice').style.display = 'none';
     }
 
-    // Meta
-    const now = new Date();
-    const ts = now.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    document.getElementById('resultsMeta').innerHTML = `<strong>${new URL(url).hostname}</strong> &middot; ${strategy} &middot; ${ts}`;
+    async function logToSheet(data, url) {
+      const cats = data.lighthouseResult.categories;
+      const audits = data.lighthouseResult.audits;
+      const now = new Date();
+      const ts = now.toISOString();
 
-    document.getElementById('results').classList.add('visible');
-    document.getElementById('logNotice').style.display = 'none';
-  }
+      const perf = Math.round((cats.performance?.score || 0) * 100);
+      const a11y = Math.round((cats.accessibility?.score || 0) * 100);
+      const bp = Math.round((cats['best-practices']?.score || 0) * 100);
+      const seo = Math.round((cats.seo?.score || 0) * 100);
+      const lcp = audits['largest-contentful-paint']?.displayValue || '';
+      const cls = audits['cumulative-layout-shift']?.displayValue || '';
+      const tbt = audits['total-blocking-time']?.displayValue || '';
+      const fcp = audits['first-contentful-paint']?.displayValue || '';
+      const tti = audits['interactive']?.displayValue || '';
 
-  async function logToSheet(data, url) {
-    const cats = data.lighthouseResult.categories;
-    const audits = data.lighthouseResult.audits;
-    const now = new Date();
-    const ts = now.toISOString();
+      const row = [[ts, url, strategy, perf, a11y, bp, seo, fcp, lcp, tbt, cls, tti]];
 
-    const perf  = Math.round((cats.performance?.score || 0) * 100);
-    const a11y  = Math.round((cats.accessibility?.score || 0) * 100);
-    const bp    = Math.round((cats['best-practices']?.score || 0) * 100);
-    const seo   = Math.round((cats.seo?.score || 0) * 100);
-    const lcp   = audits['largest-contentful-paint']?.displayValue || '';
-    const cls   = audits['cumulative-layout-shift']?.displayValue || '';
-    const tbt   = audits['total-blocking-time']?.displayValue || '';
-    const fcp   = audits['first-contentful-paint']?.displayValue || '';
-    const tti   = audits['interactive']?.displayValue || '';
+      try {
+        // Ensure header row exists
+        await ensureHeader();
 
-    const row = [[ts, url, strategy, perf, a11y, bp, seo, fcp, lcp, tbt, cls, tti]];
+        const appendRes = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ values: row })
+          }
+        );
 
-    try {
-      // Ensure header row exists
-      await ensureHeader();
+        if (!appendRes.ok) throw new Error('Sheet append failed');
 
-      const appendRes = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+        const notice = document.getElementById('logNotice');
+        notice.textContent = 'Logged to Sheets';
+        notice.className = 'log-notice';
+        notice.style.display = 'inline-block';
+        loadHistory();
+      } catch (err) {
+        const notice = document.getElementById('logNotice');
+        notice.textContent = 'Sheet log failed';
+        notice.className = 'log-notice error';
+        notice.style.display = 'inline-block';
+      }
+    }
+
+    async function ensureHeader() {
+      const getRes = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1`,
+        { headers: { 'Authorization': `Bearer ${accessToken}` } }
+      );
+      const data = await getRes.json();
+      if (data.values && data.values.length > 0) return;
+
+      const headers = [['Timestamp', 'URL', 'Strategy', 'Performance', 'Accessibility', 'Best Practices', 'SEO', 'FCP', 'LCP', 'TBT', 'CLS', 'TTI']];
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1?valueInputOption=RAW`,
         {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ values: row })
+          body: JSON.stringify({ values: headers })
         }
       );
-
-      if (!appendRes.ok) throw new Error('Sheet append failed');
-
-      const notice = document.getElementById('logNotice');
-      notice.textContent = 'Logged to Sheets';
-      notice.className = 'log-notice';
-      notice.style.display = 'inline-block';
-      loadHistory();
-    } catch (err) {
-      const notice = document.getElementById('logNotice');
-      notice.textContent = 'Sheet log failed';
-      notice.className = 'log-notice error';
-      notice.style.display = 'inline-block';
     }
-  }
 
-  async function ensureHeader() {
-    const getRes = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1`,
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
-    );
-    const data = await getRes.json();
-    if (data.values && data.values.length > 0) return;
+    async function loadHistory() {
+      if (!accessToken) return;
+      try {
+        const res = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:L50`,
+          { headers: { 'Authorization': `Bearer ${accessToken}` } }
+        );
+        const data = await res.json();
+        if (!data.values || data.values.length === 0) return;
 
-    const headers = [['Timestamp', 'URL', 'Strategy', 'Performance', 'Accessibility', 'Best Practices', 'SEO', 'FCP', 'LCP', 'TBT', 'CLS', 'TTI']];
-    await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:L1?valueInputOption=RAW`,
-      {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ values: headers })
-      }
-    );
-  }
-
-  async function loadHistory() {
-    if (!accessToken) return;
-    try {
-      const res = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:L50`,
-        { headers: { 'Authorization': `Bearer ${accessToken}` } }
-      );
-      const data = await res.json();
-      if (!data.values || data.values.length === 0) return;
-
-      const rows = data.values.slice().reverse().slice(0, 10);
-      const tbody = document.getElementById('historyBody');
-      tbody.innerHTML = rows.map(r => {
-        const date = r[0] ? new Date(r[0]).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
-        const hostname = r[1] ? (() => { try { return new URL(r[1]).hostname; } catch(e) { return r[1]; } })() : '';
-        const perf = parseInt(r[3]) || 0;
-        const cls = scoreClass(perf);
-        return `<tr>
+        const rows = data.values.slice().reverse().slice(0, 10);
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = rows.map(r => {
+          const date = r[0] ? new Date(r[0]).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+          const hostname = r[1] ? (() => { try { return new URL(r[1]).hostname; } catch (e) { return r[1]; } })() : '';
+          const perf = parseInt(r[3]) || 0;
+          const cls = scoreClass(perf);
+          return `<tr>
           <td>${date}</td>
           <td>${hostname}</td>
           <td>${r[2] || ''}</td>
@@ -883,27 +966,28 @@
           <td>${r[10] || ''}</td>
           <td>${r[9] || ''}</td>
         </tr>`;
-      }).join('');
+        }).join('');
 
-      document.getElementById('historySection').style.display = 'block';
-    } catch (e) {
-      // Silent fail for history
+        document.getElementById('historySection').style.display = 'block';
+      } catch (e) {
+        // Silent fail for history
+      }
     }
-  }
 
-  function showError(msg) {
-    const el = document.getElementById('errorMsg');
-    el.textContent = `Error: ${msg}`;
-    el.classList.add('visible');
-  }
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = `Error: ${msg}`;
+      el.classList.add('visible');
+    }
 
-  // Allow Enter key to trigger run
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('urlInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') runCheck();
+    // Allow Enter key to trigger run
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('urlInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') runCheck();
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
+
 </html>
